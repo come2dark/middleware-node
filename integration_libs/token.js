@@ -2,17 +2,24 @@
 exports.tokenCheck = function (req, res) {
     const request = require('request');
     const fetch = require('node-fetch');
-    
-    const { dev_endpoint, prod_endpoint, dev_token, prod_token,env,port } = require('./config')
+
+    const {
+        dev_endpoint,
+        prod_endpoint,
+        dev_token,
+        prod_token,
+        is_production,
+        port
+    } = require('./config')
 
     //set the endpoint to dev by default 
     let endpoint = dev_endpoint
     let token = dev_token
-    if(env == 'prod'){
+    if (is_production == true) {
         token = prod_token
         endpoint = prod_endpoint
     }
-    
+
 
 
     async function checkToken(req, res, token) {
@@ -49,7 +56,7 @@ exports.tokenCheck = function (req, res) {
             }
         };
 
-        let callback = function(error, response) {
+        let callback = function (error, response) {
             let dataV2 = JSON.parse(response.body);
             if (dataV2.error.type === 'notFound') {
                 //good api key

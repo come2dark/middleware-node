@@ -6,6 +6,6 @@ module.exports = {
   prod_endpoint: process.env.API_URL_PROD,
   dev_token: process.env.API_KEY_DEV,
   prod_token: process.env.API_KEY_PROD,
-  env:process.env.ENVIRONMENT_TYPE,
+  is_production:process.env.IS_PRODUCTION,
   port: process.env.PORT
 };

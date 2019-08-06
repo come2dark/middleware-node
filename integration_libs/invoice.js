@@ -1,17 +1,24 @@
 /** Invoice Middleware ***/
 exports.createTransaction = function (req, res, request) {
     const fetch = require('node-fetch');
-    const { dev_endpoint, prod_endpoint, dev_token, prod_token,env,port } = require('./config')
+    const {
+        dev_endpoint,
+        prod_endpoint,
+        dev_token,
+        prod_token,
+        is_production,
+        port
+    } = require('./config')
 
     //set the endpoint to dev by default 
     let endpoint = dev_endpoint
     let token = dev_token
-    if(env == 'prod'){
+    if (is_production == true) {
         token = prod_token
         endpoint = prod_endpoint
     }
 
-    
+
     let $postParams = req.body;
     let $params = {}; //our params
     let $buyerInfo = {};
@@ -44,8 +51,8 @@ exports.createTransaction = function (req, res, request) {
     $params.currency = $postParams.currency
 
     //default for sandbox
-    $invoiceUrl = endpoint+'/invoices'
-    
+    $invoiceUrl = endpoint + '/invoices'
+
     //for testing hardcode the parameter
 
     //buyer info`
@@ -57,7 +64,7 @@ exports.createTransaction = function (req, res, request) {
     } catch (ivErr) {
         //dont do anything,
     }
-   
+
     //map back to local node for field mapping and detect https or http
     let host = 'https://'
     if (!req.secure) {
@@ -77,28 +84,26 @@ exports.createTransaction = function (req, res, request) {
             json: $params
         }, (bperror, bpres, bpbody) => {
             if (bperror) {
-                
+
                 res.send(bperror);
 
                 return
             }
             if (bpbody.hasOwnProperty('error')) {
-                
+
                 res.json({
                     status: 'error',
                     message: bpbody.error + ' token: ' + $params.token
                 })
             } else {
-                
+
                 //remap for Wix response
                 let bitpayResponse = bpbody
-               
-
                 res.status(201).send(bitpayResponse)
             }
         })
     } catch (seErr) {
-        
+
         res.json({
             status: seErr.name,
             message: seErr.message
