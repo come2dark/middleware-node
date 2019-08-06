@@ -8,6 +8,8 @@ const { dev_endpoint, prod_endpoint, dev_token, prod_token,env,port } = require(
 
 //Custom SE Middleware Libraries
 const tokenLib = require('./integration_libs/token.js');
+const invoiceLib = require('./integration_libs/invoice.js');
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -26,4 +28,9 @@ app.get('/', function (req, res) {
 /** TOKEN CHECK ***/
 app.get('/api/version', function (req, res) {
     tokenLib.tokenCheck(req,res)
+});
+
+/** CREATE INVOICE ***/
+app.post('/api/createInvoice', function (req, res) {
+    invoiceLib.createTransaction(req,res,request)
 });

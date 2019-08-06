@@ -1,66 +1,74 @@
 /** Invoice Middleware ***/
 exports.createTransaction = function (req, res, request) {
+    const fetch = require('node-fetch');
+    const { dev_endpoint, prod_endpoint, dev_token, prod_token,env,port } = require('./config')
 
-    logger = require('./selog.js');
-    logger.createLogger('invoice');
+    //set the endpoint to dev by default 
+    let endpoint = dev_endpoint
+    let token = dev_token
+    if(env == 'prod'){
+        token = prod_token
+        endpoint = prod_endpoint
+    }
 
-    let wixParams = req.body;
+    
+    let $postParams = req.body;
     let $params = {}; //our params
     let $buyerInfo = {};
-    //console.log('wixParams',wixParams)
 
-    //extract what we need for the BitPay API
-    $params.token = wixParams.merchantCredentials.contractCode;
-    $params.orderId = wixParams.order.id;
-    $params.extension_version = 'Wix_2.0.0';
-    $params.price = wixParams.order.description.totalAmount;
-    $params.currency = wixParams.order.description.currency;
+    /*what BitPay expects, map accordingly*/
+    /*
+    {
+        "extendedNotifications":"true",
+        "extension_version":"Plugin_Version_1.0",
+        "price":5.00,
+        "orderId":"123456",
+        "currency":"USD",
+        "buyer":{
+            "name":"josh",
+            "email":"joshlewis@gmail.com",
+            "notify":true
+
+        },
+        "redirectURL":"https://secure.newegg.com/Application/bitcoin/ReceiveBitcoinInvoiceStatus.aspx",
+        "notificationURL":"https://secure.newegg.com/Application/bitcoin/ReceiveBitcoinInvoiceStatus.aspx"
+        }
+    */
+    /*end sample*/
+
+    //extract what we need for the BitPay API, example mapping
+    $params.token = token
+    $params.orderId = $postParams.orderID
+    $params.extension_version = 'Plugin_Version'
+    $params.price = $postParams.price
+    $params.currency = $postParams.currency
 
     //default for sandbox
-    $invoiceUrl = 'https://test.bitpay.com/invoices';
-    var logEnabled = true
-
-    if (wixParams.mode === 'live') {
-        $invoiceUrl = 'https://bitpay.com/invoices'
-        logEnabled = false
-    }
+    $invoiceUrl = endpoint+'/invoices'
+    
     //for testing hardcode the parameter
 
-
-
-    if (this.currencyCheck($params.currency) == '2') {
-        $params.price = $params.price / 100
-        $params.price = $params.price.toFixed(2)
-    }
-
-    if (logEnabled) {
-        console.log('$params.price', $params.price)
-        console.log('$params.currency', $params.currency)
-    }
     //buyer info`
     try {
         //wix may or may not send this info
-        $buyerInfo.name = wixParams.order.description.billingAddress.firstName + ' ' + wixParams.order.description.billingAddress.lastName;
-        $buyerInfo.email = wixParams.order.description.billingAddress.email;
+        $buyerInfo.name = $postParams.buyer.name
+        $buyerInfo.email = $postParams.buyer.email
         $params.buyer = $buyerInfo;
     } catch (ivErr) {
         //dont do anything,
     }
-
+   
     //map back to local node for field mapping and detect https or http
     let host = 'https://'
     if (!req.secure) {
         host = 'http://'
     }
-    $params.notificationURL = host + req.headers.host + '/api/plugin/v1/ipn';
-    $params.posData =
-        'https://cashier-services.wix.com/api/plugin/v1|' + $params.notificationURL + '|' + wixParams.wixTransactionId
+    $params.notificationURL = host + req.headers.host + '/api/ipn';
 
     //redirect after checkout    
-    $params.redirectURL = wixParams.order.returnUrls.successUrl;
+    $params.redirectURL = $postParams.redirectURL
     $params.extendedNotifications = true;
     $params.acceptanceWindow = 1200000;
-
     //send to BitPay, demo code
 
     try {
@@ -69,11 +77,7 @@ exports.createTransaction = function (req, res, request) {
             json: $params
         }, (bperror, bpres, bpbody) => {
             if (bperror) {
-                if (logEnabled) {
-                    logger.error("==========");
-                    logger.error(bperror);
-                    logger.error("==========");
-                }
+                
                 res.send(bperror);
 
                 return
@@ -87,12 +91,10 @@ exports.createTransaction = function (req, res, request) {
             } else {
                 
                 //remap for Wix response
-                let wixResponse = {}
+                let bitpayResponse = bpbody
+               
 
-                wixResponse.redirectUrl = bpbody.data.url
-                wixResponse.pluginTransactionId = bpbody.data.orderId
-
-                res.status(201).send(wixResponse)
+                res.status(201).send(bitpayResponse)
             }
         })
     } catch (seErr) {
@@ -102,14 +104,4 @@ exports.createTransaction = function (req, res, request) {
             message: seErr.message
         })
     }
-};
-
-exports.sendIpn = function (res, $params) {
-   
-
-}
-
-exports.ipnMap = function (req, res, request) {
-    
-
 };

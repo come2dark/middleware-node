@@ -52,3 +52,27 @@ To verify your API token, send a `GET` request.
     }
 }
 ```
+
+--
+
+### Creating BitPay Invoice
+
+BitPay expects an order to be sent using the following format.  If your POS system has different fields, you will need to customize the mapping in the `invoice.js` file.  Below are example fields, our API can be reviewd at [bitpay.com/api](bitpay.com/api)
+
+```
+{
+    "orderID": 000001,
+    "notificationURL": "<provided in this server, config example in next section>",
+    "redirectURL": "<where to redirect on YOUR website after a successful payment>",
+    "price": 5.00,
+    "currency": "USD",
+    "extendedNotifications": "true",
+	"buyer":{
+		"name":"<buyer name>",
+		"email":"<buyer email>",
+		"notify":true
+
+	},
+	"token":"<api token handled from this implementation>"
+}
+```
