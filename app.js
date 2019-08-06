@@ -1,9 +1,10 @@
 const express = require('express');
 const app = express();
-const port = 5555;
 const request = require('request');
 var bodyParser = require('body-parser');
 var fs = require('fs');
+
+const { dev_endpoint, prod_endpoint, dev_token, prod_token,env,port } = require('./integration_libs/config')
 
 //Custom SE Middleware Libraries
 const tokenLib = require('./integration_libs/token.js');

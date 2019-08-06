@@ -2,19 +2,26 @@
 exports.tokenCheck = function (req, res) {
     const request = require('request');
     const fetch = require('node-fetch');
+    
+    const { dev_endpoint, prod_endpoint, dev_token, prod_token,env,port } = require('./config')
 
-    let token = req.query.token;
 
-    function isTestApi(isTest) {
-        if (isTest) {
+    let token = process.env.API_KEY_PROD
+    if(process.env.ENVIRONMENT_TYPE == 'dev'){
+        token = process.env.API_KEY_DEV
+    }
+    
+    
+    function isTestApi() {
+        if(process.env.ENVIRONMENT_TYPE == 'dev')
             return 'http://test.bitpay.com'
-        } else {
+         else {
             return 'http://bitpay.com'
         }
     }
 
     async function checkToken(req, res, token) {
-        let response = await fetch(isTestApi(req.query.test) + '/invoices/1?token=' + token);
+        let response = await fetch(isTestApi() + '/invoices/1?token=' + token);
         let dataV2 = await response.json();
         if (dataV2.error === 'Object not found') {
             res.code = 200;
@@ -22,7 +29,7 @@ exports.tokenCheck = function (req, res) {
                 status: 200,
                 apiVersion: 'v2',
                 message: 'This token is for v2',
-                resourceUrl: isTestApi(req.query.test) + '/invoices'
+                resourceUrl: isTestApi() + '/invoices'
             });
             return;
         }
@@ -39,7 +46,7 @@ exports.tokenCheck = function (req, res) {
         };
 
         let options = {
-            url: isTestApi(req.query.test) + '/api/invoice/1',
+            url: isTestApi() + '/api/invoice/1',
             headers: headers,
             auth: {
                 'user': token,
@@ -56,7 +63,7 @@ exports.tokenCheck = function (req, res) {
                     status: 200,
                     apiVersion: 'v1',
                     message: 'This token is for v1',
-                    resourceUrl: isTestApi(req.query.test) + '/api/invoice'
+                    resourceUrl: isTestApi() + '/api/invoice'
                 });
 
                 return;
