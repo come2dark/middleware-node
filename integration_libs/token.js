@@ -27,8 +27,9 @@ exports.tokenCheck = function (req, res) {
         let dataV2 = await response.json();
         if (dataV2.error === 'Object not found') {
             res.code = 200;
+            res.status(res.code);
             res.json({
-                status: 200,
+                status: res.code,
                 apiVersion: 'v2',
                 message: 'This token is for v2',
                 resourceUrl: endpoint + '/invoices'
@@ -61,8 +62,9 @@ exports.tokenCheck = function (req, res) {
             if (dataV2.error.type === 'notFound') {
                 //good api key
                 res.code = 200;
+                res.status(res.code);
                 res.json({
-                    status: 200,
+                    status: res.code,
                     apiVersion: 'v1',
                     message: 'This token is for v1',
                     resourceUrl: endpoint + '/api/invoice'
@@ -70,9 +72,11 @@ exports.tokenCheck = function (req, res) {
 
                 return;
             }
-            res.status(403);
+            res.code = 403
+            res.status(res.code);
+            
             res.json({
-                status: 403,
+                status: res.code,
                 error: {
                     message: dataV2.error.message
                 }

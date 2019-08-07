@@ -37,8 +37,8 @@ exports.createTransaction = function (req, res, request) {
             "notify":true
 
         },
-        "redirectURL":"https://secure.newegg.com/Application/bitcoin/ReceiveBitcoinInvoiceStatus.aspx",
-        "notificationURL":"https://secure.newegg.com/Application/bitcoin/ReceiveBitcoinInvoiceStatus.aspx"
+        "redirectURL":"<where to redirect users after a purchase>",
+        "notificationURL":"<your ipn service></your>"
         }
     */
     /*end sample*/
@@ -53,8 +53,6 @@ exports.createTransaction = function (req, res, request) {
     //default for sandbox
     $invoiceUrl = endpoint + '/invoices'
 
-    //for testing hardcode the parameter
-
     //buyer info`
     try {
         //wix may or may not send this info
@@ -65,12 +63,9 @@ exports.createTransaction = function (req, res, request) {
         //dont do anything,
     }
 
-    //map back to local node for field mapping and detect https or http
-    let host = 'https://'
-    if (!req.secure) {
-        host = 'http://'
-    }
-    $params.notificationURL = host + req.headers.host + '/api/ipn';
+    //change this to your ipn
+    // $params.notificationURL = $postParams.redirectURL
+    $params.notificationURL = '<https://your-ipn-service.com>';
 
     //redirect after checkout    
     $params.redirectURL = $postParams.redirectURL
@@ -99,11 +94,11 @@ exports.createTransaction = function (req, res, request) {
 
                 //remap for Wix response
                 let bitpayResponse = bpbody
-                res.status(201).send(bitpayResponse)
+                res.status(200).send(bitpayResponse)
             }
         })
     } catch (seErr) {
-
+        res.status(403)
         res.json({
             status: seErr.name,
             message: seErr.message
