@@ -2,20 +2,27 @@
 exports.createTransaction = function (req, res, request) {
     const fetch = require('node-fetch');
     const {
-        dev_endpoint,
-        prod_endpoint,
-        dev_token,
-        prod_token,
-        is_production,
-        port
+        $dev_endpoint,
+        $prod_endpoint,
+        $dev_token,
+        $prod_token,
+        $is_production,
+        $invoice_url,
+        $port
     } = require('./config')
 
+    /*
+    To log invoice data, use the following
+    logger = require('./selog.js');
+    logger.createLogger('invoice');
+    logger.error("information to log")
+    */
+
     //set the endpoint to dev by default 
-    let endpoint = dev_endpoint
-    let token = dev_token
-    if (is_production == true) {
-        token = prod_token
-        endpoint = prod_endpoint
+
+    let $token = $dev_token
+    if ($is_production == true) {
+        $token = $prod_token
     }
 
 
@@ -23,7 +30,9 @@ exports.createTransaction = function (req, res, request) {
     let $params = {}; //our params
     let $buyerInfo = {};
 
-    /*what BitPay expects, map accordingly*/
+    /*what BitPay expects, map accordingly.
+    You can review https://bitpay.com/api#resource-Invoices for all fields
+    
     /*
     {
         "extendedNotifications":"true",
@@ -32,26 +41,25 @@ exports.createTransaction = function (req, res, request) {
         "orderId":"123456",
         "currency":"USD",
         "buyer":{
-            "name":"josh",
-            "email":"joshlewis@gmail.com",
+            "name":"Satoshi Nakamoto",
+            "email":"Satoshi@Nakamoto.com",
             "notify":true
 
         },
-        "redirectURL":"<where to redirect users after a purchase>",
-        "notificationURL":"<your ipn service></your>"
+       "redirectURL":"https://<redirect url>",
+        "notificationURL":"https://<optional ipn url>"
         }
     */
     /*end sample*/
 
     //extract what we need for the BitPay API, example mapping
-    $params.token = token
+    $params.token = $token
     $params.orderId = $postParams.orderID
     $params.extension_version = 'Plugin_Version'
     $params.price = $postParams.price
     $params.currency = $postParams.currency
 
     //default for sandbox
-    $invoiceUrl = endpoint + '/invoices'
 
     //buyer info`
     try {
@@ -72,36 +80,37 @@ exports.createTransaction = function (req, res, request) {
     $params.extendedNotifications = true;
     $params.acceptanceWindow = 1200000;
     //send to BitPay, demo code
-
     try {
 
-        request.post($invoiceUrl, {
+        request.post($invoice_url, {
             json: $params
         }, (bperror, bpres, bpbody) => {
             if (bperror) {
-
-                res.send(bperror);
+                res.json({
+                    status: 'error',
+                    message: bperror,
+                    apiToken:$params.token
+                })
 
                 return
             }
             if (bpbody.hasOwnProperty('error')) {
-
                 res.json({
                     status: 'error',
-                    message: bpbody.error + ' token: ' + $params.token
+                    message: bpbody.error,
+                    apiToken:$params.token
                 })
             } else {
-
-                //remap for Wix response
-                let bitpayResponse = bpbody
-                res.status(200).send(bitpayResponse)
+                let $bitpayResponse = bpbody
+                res.status(200).send($bitpayResponse)
             }
         })
     } catch (seErr) {
         res.status(403)
         res.json({
             status: seErr.name,
-            message: seErr.message
+            message: seErr.message,
+            apiToken:$params.token
         })
     }
 };

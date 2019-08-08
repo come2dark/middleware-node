@@ -72,7 +72,7 @@ BitPay expects an order to be sent using the following format.  If your POS syst
 		"notify":true
 
 	},
-	"token":"<api token handled from the .env file>"
+	"token":"<api token from the .env file>"
 }
 ```
 
@@ -82,21 +82,21 @@ A response will be sent in the following format.  As a user you must redirect us
 {
     "facade": "pos/invoice",
     "data": {
-        "url": "https://test.bitpay.com/invoice?id=P3UFybTwAkt4k2YxELxm9t",
+        "url": "https://test.bitpay.com/invoice?id=<bitpay invoice id>",
         "status": "new",
         "price": 5,
         "currency": "USD",
         "invoiceTime": 1565118684277,
         "expirationTime": 1565119584277,
         "currentTime": 1565118684304,
-        "id": "P3UFybTwAkt4k2YxELxm9t",
+        "id": "<bitpay invoice id>",
         "lowFeeDetected": false,
         "amountPaid": 0,
         "exceptionStatus": false,
         "redirectURL": "<your specificed redirect url>",
         "refundAddressRequestPending": false,
         "buyerProvidedInfo": {
-            "name": "josh"
+            "name": "Satoshi Nakamoto"
         },
         "paymentSubtotals": {
             "BTC": 42600,
@@ -167,9 +167,9 @@ BitPay will send an IPN in the following format.
         "name": "invoice_confirmed"
     },
     "data": {
-        "id": "0000001",
+        "id": "<bitpay invoice id>",
         "orderId": "467",
-        "url": "https://test.bitpay.com/invoice?id=LUrzmbn7VEb5sF4fmBATwg",
+        "url": "https://test.bitpay.com/invoice?id=<bitpay invoice id>",
         "posData": "order1234abcd",
         "status": "confirmed",
         "btcPrice": "0.002600",
@@ -195,7 +195,7 @@ BitPay will send an IPN in the following format.
 }
 ```
 
-For verfication, you should verify the status by calling a `GET` on the invoice doing the following:
+For verfication, you **should** verify the status by calling a `GET` on the invoice doing the following:
 
 * **Production**
 	* `https://bitpay.com/invoices/<id from data field above>`
@@ -236,7 +236,37 @@ The BitPay invoice status is as follows
 * **paidOver**
 	* If the amount paid is greater than the amount expected then the invoice is marked as being overpaid.
 
+	
+## Logging
 
+To create rolling logs, use the following code
 
+```
+logger = require('./selog.js');
+logger.createLogger('<log type>');
+logger.error("information to log")
+```
 
+Log types are defined below, and stored in a logs/<log type> folder
+* **onboard**
+	* used api connection
+* **invoice**
+	* used for invoice data
 
+To create your own, edit the `selog.js` file, and copy and modify the following to your specifications.
+
+```
+your_options = {
+        logDirectory: 'logs/<logtype>', // NOTE: folder must exist and be writable...
+        fileNamePattern: '<logtype>-<DATE>.log',
+        dateFormat: 'YYYY.MM.DD'
+    },
+```
+    
+Then add another `else` block
+
+```
+else if (logType === '<logtype>') {
+        logger = SimpleNodeLogger.createRollingFileLogger(your_options);
+    }
+```

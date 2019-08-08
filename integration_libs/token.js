@@ -4,20 +4,28 @@ exports.tokenCheck = function (req, res) {
     const fetch = require('node-fetch');
 
     const {
-        dev_endpoint,
-        prod_endpoint,
-        dev_token,
-        prod_token,
-        is_production,
-        port
+        $dev_endpoint,
+        $prod_endpoint,
+        $dev_token,
+        $prod_token,
+        $is_production,
+        $invoice_url,
+        $port
     } = require('./config')
 
+    /*
+    To log invoice data, use the following
+    logger = require('./selog.js');
+    logger.createLogger('onboard');
+    logger.error("information to log")
+    */
+
     //set the endpoint to dev by default 
-    let endpoint = dev_endpoint
-    let token = dev_token
-    if (is_production == true) {
-        token = prod_token
-        endpoint = prod_endpoint
+    let endpoint = $dev_endpoint
+    let token = $dev_token
+    if ($is_production == true) {
+        token = $prod_token
+        endpoint = $prod_endpoint
     }
 
 
