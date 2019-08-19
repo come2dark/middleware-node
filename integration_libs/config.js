@@ -12,5 +12,6 @@ module.exports = {
   $prod_token: process.env.API_KEY_PROD,
   $is_production:process.env.IS_PRODUCTION,
   $invoice_url:invoice_url,
-  $port: process.env.PORT
+  $port: process.env.PORT,
+  $pluginVersion:'1.0.0'
 };

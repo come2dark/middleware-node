@@ -8,9 +8,9 @@ exports.createTransaction = function (req, res, request) {
         $prod_token,
         $is_production,
         $invoice_url,
-        $port
+        $port,
+        $pluginVersion
     } = require('./config')
-
     /*
     To log invoice data, use the following
     logger = require('./selog.js');
@@ -55,7 +55,6 @@ exports.createTransaction = function (req, res, request) {
     //extract what we need for the BitPay API, example mapping
     $params.token = $token
     $params.orderId = $postParams.orderID
-    $params.extension_version = 'Plugin_Version'
     $params.price = $postParams.price
     $params.currency = $postParams.currency
 
@@ -79,17 +78,25 @@ exports.createTransaction = function (req, res, request) {
     $params.redirectURL = $postParams.redirectURL
     $params.extendedNotifications = true;
     $params.acceptanceWindow = 1200000;
+
+    const postOptions = {
+        url: $invoice_url,
+        method: 'POST',
+        headers: {
+            'X-BitPay-Plugin-Info': $pluginVersion
+        },
+        json: $params
+    };
+
     //send to BitPay, demo code
     try {
 
-        request.post($invoice_url, {
-            json: $params
-        }, (bperror, bpres, bpbody) => {
+        request(postOptions, function (bperror, bpres, bpbody) {
             if (bperror) {
                 res.json({
                     status: 'error',
                     message: bperror,
-                    apiToken:$params.token
+                    apiToken: $params.token
                 })
 
                 return
@@ -98,7 +105,7 @@ exports.createTransaction = function (req, res, request) {
                 res.json({
                     status: 'error',
                     message: bpbody.error,
-                    apiToken:$params.token
+                    apiToken: $params.token
                 })
             } else {
                 let $bitpayResponse = bpbody
@@ -110,7 +117,7 @@ exports.createTransaction = function (req, res, request) {
         res.json({
             status: seErr.name,
             message: seErr.message,
-            apiToken:$params.token
+            apiToken: $params.token
         })
     }
 };
