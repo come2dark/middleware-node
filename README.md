@@ -56,7 +56,11 @@ To verify your API token, send a `GET` request to the node service.
 
 ## Creating BitPay Invoice
 
-BitPay expects an order to be sent using the following format.  If your POS system has different fields, you will need to customize the mapping in the `invoice.js` file.  Below are example fields, our API can be reviewed at [bitpay.com/api](bitpay.com/api)
+BitPay expects an order to be sent using the following format.  If your POS system has different fields, you will need to customize the mapping in the `invoice.js` file.  
+
+Send a `POST` to your NodeJS server if you have any custom mappings, otherwise post to `https://<test.>bitpay.com/invoices`
+
+Below are example fields, our API can be reviewed at [bitpay.com/api](bitpay.com/api)
 
 ```
 {
