@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({
 
 app.listen($port, function () {
     fs.mkdir('./logs', (err) => {});
-    console.log(`BitPay SE Middleware running on port ${$port}`)
+    console.log(`Middleware running on port ${$port}`)
 });
 
 app.get('/', function (req, res) {
